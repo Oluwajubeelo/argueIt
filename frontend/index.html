@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArgueIt</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body{
+            font-family: 'Segeo UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header{
+            text-align: center;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        header h1{
+            font-size: 2rem;
+            letter-spacing: 2px;
+            font-weight: 900;
+            color: #eeeeee;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .room-info{
+            position: absolute;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #1e1e1e;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .copy-btn{
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover{ background: #059669;}
+
+        #tier-board{
+            display: flex;
+            flex-direction: column;
+            background-color: #000000;
+            border: 2px solid #333333;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .tier-row{
+            display: flex;
+            min-height: 90px;
+            border-bottom: 2px solid #333333;
+            background-color: #1e1e1e;
+        }
+
+        .tier-row:last-child{
+            border-bottom: none;
+        }
+
+        .tier-label{
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111111;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            outline: none;
+            cursor: text;
+        }
+
+        #landing-page{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: #121212;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2000;
+        }
+
+        .brand-title{
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 3.5rem;
+            font-weight: 400;
+            color: #ffffff;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .brand-subtitle{
+            font-family: monospace;
+            color: #888888;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .auth-container{
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-input{
+            width: 100%;
+            padding: 12px 16px;
+            background: transparent;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .auth-input:focus{ border-color: #10b981;}
+
+        .btn-create{
+            width: 100%;
+            padding: 12px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s
+        }
+
+        .btn-create:hover{ background-color: #059669;}
+
+        .divider{
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .btn-join{
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s
+        }
+
+        .btn-join:hover{ background-color: #222;}
+
+        .tier-s { background-color: #ff7f7f;}
+        .tier-a { background-color: #ffbf7f;}
+        .tier-b { background-color: #ffdf7f;}
+        .tier-c { background-color: #bfff7f;}
+        .tier-d { background-color: #7fff7f;}
+
+        .tier-dropzone{
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .controls{
+            display: flex;
+            gap: 10px;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #333333;
+        }
+
+        .controls input{
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background: #2a2a2a;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .controls input:focus { border-color: #10b981;}
+
+        .controls button {
+            padding: 10px 20px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .controls button:hover { opacity: 0.8;}
+
+        #trash-can {
+            background-color: #2a1111;
+            border: 2px dashed #ff4444;
+            color: #ff4444;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            min-height: 60px;
+        }
+
+        #image-pool{
+            min-height: 200px;
+            background-color: #1e1e1e;
+            border: 2px dashed #555555;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 12px;
+        }
+
+        .draggable-item{
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            user-select: none;
+            border: 2px solid transparent;
+            transition: transform 0.1s ease, border-color 0.2s ease;
+            background-color: #333;
+        }
+
+        .draggable-item:hover{
+            transform: scale(1.05);
+            border-color: #ffffff;
+        }
+
+        .draggable-item:active{
+            cursor: grabbing;
+        }
+
+        #toast-container{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9999;
+        }
+
+        .toast{
+            background-color: #1a1a2e;
+            padding: white;
+            padding: 15px 25px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-family: 'Segeo UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            border-left: 5px solid #ff4444;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show{
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success{ border-left-color: #10b981;}
+        .toast.error{ border-left-color: #ff4444;}
+
+        .remote-cursor{
+            position: absolute;
+            pointer-events: none;
+            z-index: 10000;
+            display: flex;
+            align-items: flex-start;
+            transition: transform 0.05s linear, opacity 0.3s ease;
+            opacity: 0;
+            top: 0;
+            left: 0;
+        }
+
+        .remote-cursor svg{
+            width: 18px;
+            height: 18px;
+            fill: #10b981;
+            filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+            transform: rotate(-20deg);
+        }
+
+        .remote-cursor .cursor-name{
+            background: #10b981;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-left: 2px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="landing-page">
+        <div class="brand-title">argueIt</div>
+        <div class="brand-subtitle">argue together. rank together.</div>
+
+        <div class="auth-container">
+            <input type="text" id="create-username" class="auth-input" placeholder="Username">
+            <input type="password" id="create-password" class="auth-input" placeholder="Password (Optional)">
+            <button id="btn-create" class="btn-create">Create New Room</button>
+
+            <div class="divider">- OR -</div>
+
+            <input type="text" id="join-username" class="auth-input" placeholder="Username">
+            <input type="text" id="join-roomcode" class="auth-input" placeholder="Enter code">
+            <input type="password" id="join-password" class="auth-input" placeholder="Password (If Required)">
+            <button id="btn-join" class="btn-join">Join Room</button>
+        </div>
+    </div>
+
+    <div id="app-container" style="display: none;">
+        <header>
+            <div class="room-info">
+                Room: <span id="display-room-code">---</span>
+                <button class="copy-btn" id="copy-room-btn">Copy</button>
+            </div>
+            <h1>argueIt</h1>
+        </header>
+
+        <main id="tier-board">
+            <div class="tier-row" data-tier-id="S">
+                <div class="tier-label tier-s" contenteditable="true" spellcheck="false">S</div>
+                <div class="tier-dropzone"></div>
+            </div>
+
+            <div class="tier-row" data-tier-id="A">
+                <div class="tier-label tier-a" contenteditable="true" spellcheck="false">A</div>
+                <div class="tier-dropzone"></div>
+            </div>
+
+            <div class="tier-row" data-tier-id="B">
+                <div class="tier-label tier-b" contenteditable="true" spellcheck="false">B</div>
+                <div class="tier-dropzone"></div>
+            </div>
+
+            <div class="tier-row" data-tier-id="C">
+                <div class="tier-label tier-c" contenteditable="true" spellcheck="false">C</div>
+                <div class="tier-dropzone"></div>
+            </div>
+
+            <div class="tier-row" data-tier-id="D">
+                <div class="tier-label tier-d" contenteditable="true" spellcheck="false">D</div>
+                <div class="tier-dropzone"></div>
+            </div>
+        </main>
+
+        <div class="controls">
+            <input type="text" id="image-url-input" placeholder="Paste an image URL here...">
+            <button id="add-image-btn">Add Image</button>
+            <button id="clear-board-btn" style="background-color: #ff4444;">Clear All</button>
+        </div>
+
+        <div id="trash-can" class="tier-dropzone" data-tier-id="trash">
+            🗑️ Drag Image Here to Delete
+        </div>
+
+        <section id="image-pool" class="tier-dropzone" data-tier-id="pool">
+        </section>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        let draggedItem = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let originalParent = null;
+        let socket = null;
+        let currentUsername = "";
+        let lastCursorSend = 0;
+        const cursors= {};
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('room')){
+            document.getElementById('join-roomcode').value = urlParams.get('room');
+        }
+
+        function showToast(type, message){
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {toast.classList.add('show'); }, 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function handleError(errorCode){
+            switch(errorCode){
+                case 'NO_USERNAME':
+                    showToast('error', 'PLEASE ENTER A USERNAME');
+                    break;
+
+                case 'NO_ROOMCODE':
+                    showToast('error', 'PLEASE ENTER A ROOM CODE');
+                    break;
+
+                case 'INVALID_ROOMCODE':
+                    showToast('error', 'ROOM CODE MUST BE 6 CHARACTERS');
+                    break;
+            }
+        }
+
+        document.getElementById('copy-room-btn').addEventListener('click', () => {
+            const code = document.getElementById('display-room-code').innerText;
+            const tempInput = document.createElement('input');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('success', 'ROOM CODE COPIED!');
+        });
+
+        document.getElementById('btn-create').addEventListener('click', () => {
+            const username = document.getElementById('create-username').value.trim();
+            if (!username) return handleError('NO_USERNAME');
+
+            currentUsername = username;
+            const newRoomId = Math.random().toString(36).substring(2, 8);
+            connectToRoom(newRoomId);
+        });
+
+        document.getElementById('btn-join').addEventListener('click', () => {
+            const username = document.getElementById('join-username').value.trim();
+            const roomcode = document.getElementById('join-roomcode').value.trim().toLowerCase();
+
+            if(!username) return handleError('NO_USERNAME');
+            if(!roomcode) return hanldeError('NO_ROOMCODE');
+            if(roomcode.length !== 6) return handleError('INVALID_ROOMCODE');
+
+            currentUsername = username;
+            connectToRoom(roomcode);
+        });
+
+        function updateRemoteCursor(username, x, y){
+            if (username === currentUsername) return;
+
+            if(!cursors[username]) {
+                const cursorEl = document.createElement('div');
+                cursorEl.className = 'remote-cursor';
+                cursorEl.innerHTML = `
+                    <svg viewBox="0 0 16 16"><path d="M0,0 L16,6 L9,9 L6,16 L0,0" /></svg>
+                    <div class="cursor-name">${username}</div>
+                    `;
+                    document.body.appendChild(cursorEl);
+                    cursors[username] = { el: cursorEl, timeout: null};
+            }
+
+            const cursor = cursors[username];
+            cursor.el.style.transform = `translate(${x}px, ${y}px)`;
+            cursor.el.style.opacity = '1';
+
+            if (cursor.timeout) clearTimeout(cursor.timeout);
+            cursor.timeout = setTimeout(() => {
+                cursor.el.style.opacity = '0';
+            }, 3000);
+        }
+
+        function connectToRoom(roomId){
+            window.history.pushState({}, '', '?room=' + roomId);
+            document.title = "ArgueIt - Room: " + roomId;
+
+            document.getElementById('display-room-code').innerText = roomId;
+
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+
+            socket = new WebSocket(`ws://localhost:8080/tierlist/${roomId}`);
+
+            socket.onopen = () => {
+                console.log(`Connected to Room ${roomId} as ${currentUsername}!`);
+                socket.send(JSON.stringify({ action:'request_sync'}));
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.action === 'move') {
+                    const item = document.querySelector(`[data-item-id="${data.itemId}"]`);
+                    const targetContainer = document.querySelector(`[data-tier-id="${data.targetTierId}"]`);
+                    if (item && targetContainer){
+                        const dropzone = targetContainer.classList.contains('tier-row') ? targetContainer.querySelector('.tier-dropzone') : targetContainer;
+                        dropzone.appendChild(item);
+                    }
+                }
+                else if (data.action === 'add'){
+                    createImageElement(data.itemId, data.url);
+                }
+                else if (data.action === 'delete') {
+                    const item = document.querySelector(`[data-item-id="${data.itemId}"]`);
+                    if (item) item.remove();
+                }
+                else if(data.action === 'clear'){
+                    document.querySelectorAll('.draggable-item').forEach(img => img.remove());
+                }
+                else if (data.action === 'rename_tier'){
+                    const tierRow = document.querySelector(`.tier-row[data-tier-id="${data.tierId}"]`);
+                    if (tierRow){
+                        const label = tierRow.querySelector('.tier-label');
+                        if (label && label.innerText !== data.name){
+                            label.innerText = data.name;
+                        }
+                    }
+                }
+                else if (data.action === 'cursor'){
+                    updateRemoteCursor(data.username, data.x, data.y);
+                }
+                else if (data.action === 'request_sync'){
+                    const items = [];
+                    document.querySelectorAll('.draggable-item').forEach(img => {
+                        const tierId = img.closest('[data-tier-id]').getAttribute('data-tier-id');
+                        items.push({
+                            id: img.getAttribute('data-item-id'),
+                            url: img.src,
+                            tier: tierId
+                        });
+                    });
+
+                    const tiers = {};
+                    document.querySelectorAll('.tier-label').forEach(label => {
+                        const tierId = label.closest('.tier-row').getAttribute('data-tier-id');
+                        tiers[tierId] = label.innerText;
+                    });
+
+                    setTimeout(() => {
+                        socket.send(JSON.stringify({ action: 'sync_state', items: items, tiers:tiers}));
+                    }, Math.random() * 500);
+                }
+                else if(data.action === 'sync_state'){
+                    if (data.tiers){
+                        Object.keys(data.tiers).forEach(tierId => {
+                            const label = document.querySelector(`.tier-row[data-tier-id="${tierId}"] .tier-label`);
+                            if (label) label.innerText = data.tiers[tierId];
+                        });
+                    }
+
+                    data.items.forEach(itemData => {
+                        if (!document.querySelector(`[data-item-id="${itemData.id}"]`)){
+                            createImageElement(itemData.id, itemData.url);
+                            const newImg = document.querySelector(`[data-item-id="${itemData.id}"]`);
+                            const targetContainer = document.querySelector(`[data-tier-id="${itemData.tier}"]`);
+
+                            if (newImg && targetContainer){
+                                const dropzone = targetContainer.classList.contains('tier-row') ? targetContainer.querySelector('.tier-dropzone') : targetContainer;
+                                dropzone.appendChild(newImg);
+                            }
+                        }
+                    });
+                }
+            };
+
+            socket.onclose = () => {
+                console.log("Connection asleep. Reconnecting...");
+                setTimeout(() => connectToRoom(roomId), 2000);
+            }
+
+            if(window.pingInterval) clearInterval(window.pingInterval);
+            window.pingInterval = setInterval(() => {
+                if (socket && socket.readyState === WebSocket.OPEN){
+                    socket.send(JSON.stringify({action: 'ping'}));
+                }
+            }, 20000);
+        }
+
+        function broadcastMove(itemId, targetTierId){
+            if (socket && socket.readyState === WebSocket.OPEN){
+                socket.send(JSON.stringify({
+                    action: 'move',
+                    itemId: itemId,
+                    targetTierId: targetTierId
+                }));
+            }
+        }
+
+        function createImageElement(id, url){
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'draggable-item';
+            img.setAttribute('data-item-id', id);
+            img.setAttribute('draggable', 'false');
+            img.onerror = () => {img.src = 'https://via.placeholder.com/80?text=Error';};
+            document.getElementById('image-pool').appendChild(img);
+        }
+
+        document.getElementById('add-image-btn').addEventListener('click', () => {
+            const urlInput = document.getElementById('image-url-input');
+            const url = urlInput.value.trim();
+            if (!url) return showToast('error', 'PLEASE ENTER AN IMAGE URL');
+
+            const uniqueId = 'img_' + Data.now();
+
+            createImageElement(uniqueId, url);
+            urlInput.value = '';
+
+            if (socket && socket.readyState === WebSocket.OPEN){
+                socket.send(JSON.stringify({ action: 'add', itemId: uniqueId, url: url}));
+            }
+        });
+
+        document.getElementById('clear-board-btn').addEventListener('click', () => {
+            document.querySelectorAll('.draggable-item').forEach(img => img.remove());
+
+            if (socket && socket.readyState === WebSocket.OPEN){
+                socket.send(JSON.stringify({action: 'clear'}));
+            }
+        });
+
+        document.querySelectorAll('.tier-label').forEach(label => {
+            label.addEventListener('blur', () => {
+                const tierId = label.closest('.tier-row').getAttribute('data-tier-id');
+                const newName = label.innerText;
+                if(socket && socket.readyState === WebSocket.OPEN){
+                    socket.send(JSON.stringify({action: 'rename_tier', tierId: tierId, name: newName}));
+                }
+            });
+
+            label.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        document.addEventListener('pointerdown', (e) => {
+            if(e.target.classList.contains('draggable-item')){
+                draggedItem = e.target;
+                originalParent = draggedItem.parentElement;
+
+                const rect = draggedItem.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+
+                document.body.appendChild(draggedItem);
+
+                draggedItem.style.position = 'absolute';
+                draggedItem.style.zIndex = '1000';
+                draggedItem.style.left = `${e.apgeX - offsetX}px`;
+                draggedItem.style.top = `${e.pageY - offsetY}px`;
+
+                draggedItem.setPointerCapture(e.pointerId);
+            }
+        });
+
+        document.addEventListener('pointermove', (e) => {
+            if (draggedItem){
+                draggedItem.style.left = `${e.pageX - offsetX}px`;
+                draggedItem.style.top = `${e.pageY - offsetY}px`;
+            }
+
+            if (socket && socket.readyState === WebSocket.OPEN && document.getElementById('app-container').style.display !== 'none'){
+                const now = Date.now();
+                if (now - lastCursorSend > 50){
+                    socket.send(JSON.stringify({ action: 'cursor', username: currentUsername, x: e.pageX, y: e.pageY}));
+                    lastCursorSend = now;
+                }
+            }
+        });
+
+        document.addEventListener('pointerup', (e) => {
+            if (draggedItem){
+                draggedItem.style.display = 'none';
+                const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
+
+                draggedItem.style.display = '';
+
+                const dropzone = elementBelow ? elementBelow.closest('.tier-dropzone') : null;
+
+                draggedItem.style.position = '';
+                draggedItem.style.zIndex = '';
+                draggedItem.style.left = '';
+                draggedItem.style.top = '';
+
+                if (dropzone){
+                    const targetTierId = dropzone.closest('[data-tier-id]').getAttribute('data-tier-id');
+                    const itemId = draggedItem.getAttribute('data-item-id');
+
+                    if (targetTierId === 'trash'){
+                        draggedItem.remove();
+                        if (socket && socket.readyState === WebSocket.OPEN){
+                            socket.send(JSON.stringify({ action: 'delete', itemId: itemId}));
+                        }
+                    }
+                    else{
+                        dropzone.appendChild(draggedItem);
+                        broadcastMove(itemId, targetTierId);
+                    }
+                }
+                else{
+                    originalParent.appendChild(draggedItem);
+                }
+
+                draggedItem.releasePointerCapture(e.pointerId);
+                draggedItem = null;
+                originalParent = null;
+            }
+        });
+    </script>
+</body>
+</html>
