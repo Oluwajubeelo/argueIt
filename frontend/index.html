@@ -12,7 +12,7 @@
         }
 
         body{
-            font-family: 'Segeo UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121212;
             color: #ffffff;
             min-height: 100vh;
@@ -258,6 +258,15 @@
             font-weight: bold;
             font-size: 16px;
             min-height: 60px;
+            transition: all 0.2s ease;
+        }
+
+        #trash-can.drag-over{
+            background-color: #4a1818;
+            border-color: #ff8888;
+            color: #ff8888;
+            transform:scale(1.02);
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
         }
 
         #image-pool{
@@ -310,7 +319,7 @@
             padding: 15px 25px;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            font-family: 'Segeo UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-weight: bold;
             font-size: 14px;
             border-left: 5px solid #ff4444;
@@ -383,7 +392,7 @@
     <div id="app-container" style="display: none;">
         <header>
             <div class="room-info">
-                Room: <span id="display-room-code">---</span>
+                Room :<span id="display-room-code">---</span>
                 <button class="copy-btn" id="copy-room-btn">Copy</button>
             </div>
             <h1>argueIt</h1>
@@ -441,6 +450,13 @@
         let currentUsername = "";
         let lastCursorSend = 0;
         const cursors= {};
+        let localStream = null;
+        const peerConnections = {};
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302'}
+            ]
+        };
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('room')){
@@ -487,26 +503,95 @@
             showToast('success', 'ROOM CODE COPIED!');
         });
 
-        document.getElementById('btn-create').addEventListener('click', () => {
+        document.getElementById('btn-create').addEventListener('click', async () => {
             const username = document.getElementById('create-username').value.trim();
             if (!username) return handleError('NO_USERNAME');
 
             currentUsername = username;
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+                showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
+            }
+            else{
+                try{
+                    localStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+                    showToast('success', 'MICROPHONE CONNECTED');
+                }
+                catch(err){
+                    console.error("Mic error:", err);
+                    if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
+                        showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
+                    }
+                    else{
+                        showToast('error', 'MICROPHONE DENIED - YOU WILL BE MUTED');
+                    }
+                }
+            }
+            
             const newRoomId = Math.random().toString(36).substring(2, 8);
             connectToRoom(newRoomId);
         });
 
-        document.getElementById('btn-join').addEventListener('click', () => {
+        document.getElementById('btn-join').addEventListener('click', async () => {
             const username = document.getElementById('join-username').value.trim();
             const roomcode = document.getElementById('join-roomcode').value.trim().toLowerCase();
 
             if(!username) return handleError('NO_USERNAME');
-            if(!roomcode) return hanldeError('NO_ROOMCODE');
+            if(!roomcode) return handleError('NO_ROOMCODE');
             if(roomcode.length !== 6) return handleError('INVALID_ROOMCODE');
 
             currentUsername = username;
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+                showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
+            }
+            else{
+                try{
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false});
+                    showToast('success', 'MICROPHONE CONNECTED');
+                }
+                catch(err){
+                    console.error("Mic error:", err);
+                    if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
+                        showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
+                    }
+                    else{
+                        showToast('error', 'MICROPHONE DENIED - YOU WILL BE MUTED');
+                    }
+                }
+            }
             connectToRoom(roomcode);
         });
+
+        function createPeerConnection(targetUsername){
+            const pc = new RTCPeerConnection(rtcConfig);
+            peerConnections[targetUsername] = pc;
+
+            if(localStream){
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            }
+
+            pc.onicecandidate = (event) => {
+                if(event.candidate && socket.readyState === WebSocket.OPEN){
+                    socket.send(JSON.stringify({
+                        action: 'webrtc_ice',
+                        target: targetUsername,
+                        sender: currentUsername,
+                        candidate: event.candidate
+                    }));
+                }
+            };
+
+            pc.ontrack = (event) =>{
+                let audioEl = document.getElementById('audio-' + targetUsername);
+                if(!audioEl){
+                    audioEl = document.createElement('audio');
+                    audioEl.id = 'audio-' + targetUsername;
+                    audioEl.autoplay = true;
+                    document.body.appendChild(audioEl);
+                }
+                audioEl.srcObject = event.streams[0];
+            };
+            return pc;
+        }
 
         function updateRemoteCursor(username, x, y){
             if (username === currentUsername) return;
@@ -541,11 +626,16 @@
             document.getElementById('landing-page').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
 
-            socket = new WebSocket(`ws://localhost:8080/tierlist/${roomId}`);
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            socket = new WebSocket(`${protocol}//${host}/tierlist/${roomId}`);
 
             socket.onopen = () => {
                 console.log(`Connected to Room ${roomId} as ${currentUsername}!`);
-                socket.send(JSON.stringify({ action:'request_sync'}));
+                socket.send(JSON.stringify({ 
+                    action:'request_sync',
+                    sender: currentUsername
+                }));
             };
 
             socket.onmessage = (event) => {
@@ -601,6 +691,19 @@
                     setTimeout(() => {
                         socket.send(JSON.stringify({ action: 'sync_state', items: items, tiers:tiers}));
                     }, Math.random() * 500);
+
+                    if (data.sender && data.sender !== currentUsername){
+                        const pc = createPeerConnection(data.sender);
+                        pc.createOffer().then(offer =>{
+                            pc.setLocalDescription(offer);
+                            socket.send(JSON.stringify({
+                                action: 'webrtc_offer',
+                                target: data.sender,
+                                sender: currentUsername,
+                                offer: offer
+                            }));
+                        });
+                    }
                 }
                 else if(data.action === 'sync_state'){
                     if (data.tiers){
@@ -622,6 +725,32 @@
                             }
                         }
                     });
+                }
+
+                else if(data.action === 'webrtc_offer' && data.target === currentUsername){
+                    const pc = createPeerConnection(data.sender);
+                    pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                    pc.createAnswer().then(answer =>{
+                        pc.setLocalDescription(answer);
+                        socket.send(JSON.stringify({
+                            action: 'webrtc_answer',
+                            target: data.sender,
+                            sender: currentUsername,
+                            answer: answer
+                        }));
+                    });
+                }
+                else if(data.action === 'webrtc_answer' && data.target === currentUsername){
+                    const pc = peerConnections[data.sender];
+                    if (pc){
+                        pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    }
+                }
+                else if(data.action ==='webrtc_ice' && data.target === currentUsername){
+                    const pc = peerConnections[data.sender];
+                    if(pc){
+                        pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    }
                 }
             };
 
@@ -663,13 +792,38 @@
             const url = urlInput.value.trim();
             if (!url) return showToast('error', 'PLEASE ENTER AN IMAGE URL');
 
-            const uniqueId = 'img_' + Data.now();
+            const uniqueId = 'img_' + Date.now();
 
             createImageElement(uniqueId, url);
             urlInput.value = '';
 
             if (socket && socket.readyState === WebSocket.OPEN){
                 socket.send(JSON.stringify({ action: 'add', itemId: uniqueId, url: url}));
+            }
+        });
+
+        document.addEventListener('paste', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let i = 0; i < items.length; i++){
+                if (items[i].type.indexOf('image') !== -1){
+                    const blob = items[i].getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64Url = event.target.result;
+                        const uniqueId = 'img_' + Date.now();
+                        createImageElement(uniqueId, base64Url);
+
+                        if(socket && socket.readyState === WebSocket.OPEN){
+                            socket.send(JSON.stringify({action: 'add', itemId: uniqueId, url: base64Url}));
+                        }
+                        showToast('success', 'IMAGE PASTED!');
+                    };
+                    reader.readAsDataURL(blob);
+                    e.preventDefault();
+                    break;
+                }
             }
         });
 
@@ -708,7 +862,7 @@
 
                 draggedItem.style.position = 'absolute';
                 draggedItem.style.zIndex = '1000';
-                draggedItem.style.left = `${e.apgeX - offsetX}px`;
+                draggedItem.style.left = `${e.pageX - offsetX}px`;
                 draggedItem.style.top = `${e.pageY - offsetY}px`;
 
                 draggedItem.setPointerCapture(e.pointerId);
@@ -719,6 +873,18 @@
             if (draggedItem){
                 draggedItem.style.left = `${e.pageX - offsetX}px`;
                 draggedItem.style.top = `${e.pageY - offsetY}px`;
+
+                const trashCan = document.getElementById('trash-can');
+                if(trashCan){
+                    const rect = trashCan.getBoundingClientRect();
+                    if(e.clientX >= rect.left && e.clientX <= rect.right &&
+                        e.clientY >= rect.top && e.clientY <= rect.bottom){
+                            trashCan.classList.add('drag-over');
+                        }
+                    else{
+                        trashCan.classList.remove('drag-over');
+                    }
+                }
             }
 
             if (socket && socket.readyState === WebSocket.OPEN && document.getElementById('app-container').style.display !== 'none'){
@@ -731,6 +897,8 @@
         });
 
         document.addEventListener('pointerup', (e) => {
+            const trashCan = document.getElementById('trash-can');
+            if (trashCan) trashCan.classList.remove('drag-over');
             if (draggedItem){
                 draggedItem.style.display = 'none';
                 const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
