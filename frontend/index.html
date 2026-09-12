@@ -23,14 +23,209 @@
 
         #app-container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             min-height: 100vh;
-            padding: 20px;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            padding: 0;
+            gap: 0;
             width: 100%;
         }
+
+        .left-panel{
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        .right-panel{
+            width: 350px;
+            background-color: #1a1a1a;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+
+        .chat-header{
+            padding: 15px;
+            background:#252525;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h2{
+            font-size: 16px;
+            margin: 0;
+            color: #eee;
+        }
+
+        .call-btn{
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .call-btn:hover{ background: #333; color: white;}
+
+        .call-btn.active{
+            background: #10b981;
+            border-color: #059669;
+            color: white;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+
+        .call-btn.active:hover { background: #ff4444; border-color: #cc0000; box-shadow: 0 0 10px rgba(255, 68, 68, 0.4);}
+
+        .chat-messages{
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message-wrapper{
+            display: flex;
+            align-items: center;
+            align-self: flex-start;
+            max-width: 85%;
+        }
+
+        .chat-message-wrapper.self{
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .chat-message {
+            background: #2a2a2a;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            font-size: 14px;
+            word-wrap: break-word;
+            flex: 1;
+        }
+
+        .chat-message.self{
+            background: #10b981;
+            color: white;
+            border-bottom-left-radius: 14px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .reply-icon-btn{
+            opacity: 0;
+            background: none; border: none; color: #888;
+            cursor: pointer; padding: 5px; margin: 0 5px;
+            transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .chat-message-wrapper:hover .reply-icon-btn{
+            opacity: 1;
+        }
+
+        .reply-icon-btn:hover{
+            color: #10b981;
+        }
+
+        .replied-to-block{
+            background: rgba(0,0,0,0.25);
+            border-left: 3px solid #10b981;
+            padding: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            border-radius: 4px;
+            color: #ddd;
+        }
+
+        .chat-message.self .replied-to-block{
+            border-left-color: #ffffff;
+            color: #ffffff;
+        }
+
+        .replied-to-block .reply-sender{ font-weight: bold; font-size: 10px; margin-bottom:2px;}
+
+        .reply-context-area{
+            background: #252525;
+            padding: 10px 15px;
+            border-top: 1px solid #333;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .reply-context-area .close-btn{
+            cursor: pointer;
+            color: #ff4444;
+            font-weight: bold;
+            background: none;
+            border: none;
+            font-size: 14px;
+        }
+
+        .chat-message .sender{
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 4px;
+            opacity: 0.7;
+        }
+
+        .chat-message.self .sender{display: none;}
+
+        .chat-input-area{
+            padding: 15px;
+            background: #252525;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input{
+            flex: 1;
+            padding: 10px 15px;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .chat-input:focus{ border-color: #10b981;}
+
+        .chat-send-btn{
+            background: #10b981;
+            color: white;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.2s
+        }
+
+        .chat-send-btn:hover{background: #059669;}
 
         header{
             text-align: center;
@@ -74,6 +269,19 @@
         }
 
         .copy-btn:hover{ background: #059669;}
+
+        .toggle-chat-btn{
+            background: #3b82f6;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .toggle-chat-btn:hover{ background: #2563eb;}
 
         #tier-board{
             display: flex;
@@ -218,6 +426,7 @@
             padding: 15px;
             border-radius: 8px;
             border: 2px solid #333333;
+            flex-wrap: wrap;
         }
 
         .controls input{
@@ -315,7 +524,7 @@
 
         .toast{
             background-color: #1a1a2e;
-            padding: white;
+            color: white;
             padding: 15px 25px;
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -367,6 +576,39 @@
             margin-left: 2px;
             white-space: nowrap;
         }
+
+        @media (max-width: 850px){
+            #app-container{
+                position: relative;
+            }
+            .left-panel{
+                padding-right: 20px;
+            }
+            header{
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .room-info{
+                position:static;
+                order: 2;
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            header h1{
+                order: 1;
+                margin-left: 10px;
+            }
+            .right-panel{
+                position: absolute;
+                right: 0;
+                top: 0;
+                z-index: 1000;
+                box-shadow: -4px 0 20px rgba(0,0,0,0.8);
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -390,53 +632,84 @@
     </div>
 
     <div id="app-container" style="display: none;">
-        <header>
-            <div class="room-info">
-                Room :<span id="display-room-code">---</span>
-                <button class="copy-btn" id="copy-room-btn">Copy</button>
-            </div>
-            <h1>argueIt</h1>
-        </header>
+        <div class="left-panel">
+            <header>
+                <div class="room-info">
+                    Room :<span id="display-room-code">---</span>
+                    <button class="copy-btn" id="copy-room-btn">Copy</button>
+                    <button class="toggle-chat-btn" id="toggle-chat-btn">Toggle Chat</button>
+                </div>
+                <h1>argueIt</h1>
+            </header>
 
-        <main id="tier-board">
-            <div class="tier-row" data-tier-id="S">
-                <div class="tier-label tier-s" contenteditable="true" spellcheck="false">S</div>
-                <div class="tier-dropzone"></div>
+            <main id="tier-board">
+                <div class="tier-row" data-tier-id="S">
+                    <div class="tier-label tier-s" contenteditable="true" spellcheck="false">S</div>
+                    <div class="tier-dropzone"></div>
+                </div>
+
+                <div class="tier-row" data-tier-id="A">
+                    <div class="tier-label tier-a" contenteditable="true" spellcheck="false">A</div>
+                    <div class="tier-dropzone"></div>
+                </div>
+
+                <div class="tier-row" data-tier-id="B">
+                    <div class="tier-label tier-b" contenteditable="true" spellcheck="false">B</div>
+                    <div class="tier-dropzone"></div>
+                </div>
+
+                <div class="tier-row" data-tier-id="C">
+                    <div class="tier-label tier-c" contenteditable="true" spellcheck="false">C</div>
+                    <div class="tier-dropzone"></div>
+                </div>
+
+                <div class="tier-row" data-tier-id="D">
+                    <div class="tier-label tier-d" contenteditable="true" spellcheck="false">D</div>
+                    <div class="tier-dropzone"></div>
+                </div>
+            </main>
+
+            <div class="controls">
+                <input type="text" id="image-url-input" placeholder="Paste an image URL here...">
+                <button id="add-image-btn">Add Image</button>
+                <button id="clear-board-btn" style="background-color: #ff4444;">Clear All</button>
             </div>
 
-            <div class="tier-row" data-tier-id="A">
-                <div class="tier-label tier-a" contenteditable="true" spellcheck="false">A</div>
-                <div class="tier-dropzone"></div>
+            <div id="trash-can" class="tier-dropzone" data-tier-id="trash">
+                🗑️ Drag Image Here to Delete
             </div>
 
-            <div class="tier-row" data-tier-id="B">
-                <div class="tier-label tier-b" contenteditable="true" spellcheck="false">B</div>
-                <div class="tier-dropzone"></div>
-            </div>
-
-            <div class="tier-row" data-tier-id="C">
-                <div class="tier-label tier-c" contenteditable="true" spellcheck="false">C</div>
-                <div class="tier-dropzone"></div>
-            </div>
-
-            <div class="tier-row" data-tier-id="D">
-                <div class="tier-label tier-d" contenteditable="true" spellcheck="false">D</div>
-                <div class="tier-dropzone"></div>
-            </div>
-        </main>
-
-        <div class="controls">
-            <input type="text" id="image-url-input" placeholder="Paste an image URL here...">
-            <button id="add-image-btn">Add Image</button>
-            <button id="clear-board-btn" style="background-color: #ff4444;">Clear All</button>
+            <section id="image-pool" class="tier-dropzone" data-tier-id="pool">
+            </section>
         </div>
+        
+        <div class="right-panel">
+            <div class="chat-header">
+                <h2>Room Chat</h2>
+                <button class="call-btn" id="call-btn" title="Join Voice Call">
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                    </svg>                   
+                </button>
+            </div>
 
-        <div id="trash-can" class="tier-dropzone" data-tier-id="trash">
-            🗑️ Drag Image Here to Delete
+            <div class="chat-messages" id="chat-messages">
+            </div>
+
+            <div class="reply-context-area" id="reply-context-area">
+                <div>Replying to <span id="reply-target-name" style="font-weight: bold; color: #10b981;"></span>: <span id="reply-target-text" style="opacity: 0.8; margin-left: 5px;"></span></div>
+                <button class="close-btn" id="cancel-reply-btn">✕</button>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type a message...">
+                <button class="chat-send-btn" id="chat-send-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
-
-        <section id="image-pool" class="tier-dropzone" data-tier-id="pool">
-        </section>
     </div>
 
     <div id="toast-container"></div>
@@ -457,6 +730,8 @@
                 { urls: 'stun:stun.l.google.com:19302'}
             ]
         };
+        let inCall = false;
+        let replyingTo = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('room')){
@@ -492,6 +767,137 @@
             }
         }
 
+        function startReply(sender, text){
+            replyingTo = {sender, text};
+            document.getElementById('reply-target-name').innerText = sender;
+            const truncatedText = text.length > 30 ? text.substring(0, 30) + '...' : text;
+            document.getElementById('reply-target-text').innerText = truncatedText;
+            document.getElementById('reply-context-area').style.display = 'flex';
+            document.getElementById('chat-input').focus();
+        }
+
+        document.getElementById('cancel-reply-btn').addEventListener('click', () => {
+            replyingTo = null;
+            document.getElementById('reply-context-area').style.display = 'none';
+        });
+
+        function appendChatMessage(sender, text, replyData=null){
+            const chatBox = document.getElementById('chat-messages');
+            const wrapperEl = document.createElement('div');
+            wrapperEl.className = 'chat-message-wrapper ' + (sender === currentUsername ? 'self' : '');
+            const msgEl = document.createElement('div');
+            msgEl.className = 'chat-message ' + (sender === currentUsername ? 'self' : '');
+
+            if(replyData){
+                const replyBlock = document.createElement('div');
+                replyBlock.className = 'replied-to-block';
+                replyBlock.innerHTML = `<div class="reply-sender">${replyData.sender}</div><div>${replyData.text}</div>`;
+                msgEl.appendChild(replyBlock);
+            }
+
+            const senderEl = document.createElement('div');
+            senderEl.className = 'sender';
+            senderEl.innerText = sender;
+            const textEl = document.createElement('div');
+            textEl.innerText = text;
+            msgEl.appendChild(senderEl);
+            msgEl.appendChild(textEl);
+            const replyBtn = document.createElement('button');
+            replyBtn.className = 'reply-icon-btn';
+            replyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>`;
+            replyBtn.title = "Reply";
+            replyBtn.onclick = () => startReply(sender, text);
+            wrapperEl.appendChild(msgEl);
+            wrapperEl.appendChild(replyBtn);
+            chatBox.appendChild(wrapperEl);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendChatMessage(){
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const currentReplyData = replyingTo ? {...replyingTo} : null;
+
+            appendChatMessage(currentUsername, text, currentReplyData);
+            input.value = '';
+
+            if(socket && socket.readyState === WebSocket.OPEN){
+                socket.send(JSON.stringify({
+                    action: 'chat',
+                    sender: currentUsername,
+                    text: text,
+                    replyTo: currentReplyData
+                }));
+            }
+
+            replyingTo = null;
+            document.getElementById('reply-context-area').style.display = 'none';
+        }
+
+        document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
+        document.getElementById('chat-input').addEventListener('keypress', (e) =>{
+            if(e.key === 'Enter') sendChatMessage();
+        });
+
+        document.getElementById('toggle-chat-btn').addEventListener('click', () => {
+            const chatPanel = document.querySelector('.right-panel');
+            if(chatPanel.style.display === 'none'){
+                chatPanel.style.display = 'flex';
+            }
+            else{
+                chatPanel.style.display = 'none';
+            }
+        });
+
+        document.getElementById('call-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('call-btn');
+
+            if (inCall){
+                if(localStream){
+                    localStream.getTracks().forEach(t => t.stop());
+                }
+                localStream = null;
+                inCall = false;
+                btn.classList.remove('active');
+
+                Object.values(peerConnections).forEach(pc => pc.close());
+                for (let key in peerConnections) delete peerConnections[key];
+
+                document.querySelectorAll('audio').forEach(a => a.remove());
+                showToast('success', 'LEFT VOICE CALL');
+                return;
+            }
+
+            try{
+                localStream = await  navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: false
+                });
+                inCall = true;
+                btn.classList.add('active');
+                showToast('success', 'MICROPHONE CONNECTED');
+
+                if(socket && socket.readyState === WebSocket.OPEN){
+                    socket.send(JSON.stringify({action:'join_call', sender: currentUsername}));
+                }
+            }
+            catch(err){
+                console.error("Mic error:", err);
+                if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
+                    showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
+                }
+                else{
+                    showToast('error', 'MICROPHONE DENIED');
+                }
+            }
+        });
+
         document.getElementById('copy-room-btn').addEventListener('click', () => {
             const code = document.getElementById('display-room-code').innerText;
             const tempInput = document.createElement('input');
@@ -503,30 +909,11 @@
             showToast('success', 'ROOM CODE COPIED!');
         });
 
-        document.getElementById('btn-create').addEventListener('click', async () => {
+        document.getElementById('btn-create').addEventListener('click', () => {
             const username = document.getElementById('create-username').value.trim();
             if (!username) return handleError('NO_USERNAME');
 
             currentUsername = username;
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-                showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
-            }
-            else{
-                try{
-                    localStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-                    showToast('success', 'MICROPHONE CONNECTED');
-                }
-                catch(err){
-                    console.error("Mic error:", err);
-                    if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
-                        showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
-                    }
-                    else{
-                        showToast('error', 'MICROPHONE DENIED - YOU WILL BE MUTED');
-                    }
-                }
-            }
-            
             const newRoomId = Math.random().toString(36).substring(2, 8);
             connectToRoom(newRoomId);
         });
@@ -540,24 +927,6 @@
             if(roomcode.length !== 6) return handleError('INVALID_ROOMCODE');
 
             currentUsername = username;
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-                showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
-            }
-            else{
-                try{
-                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false});
-                    showToast('success', 'MICROPHONE CONNECTED');
-                }
-                catch(err){
-                    console.error("Mic error:", err);
-                    if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
-                        showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
-                    }
-                    else{
-                        showToast('error', 'MICROPHONE DENIED - YOU WILL BE MUTED');
-                    }
-                }
-            }
             connectToRoom(roomcode);
         });
 
@@ -640,8 +1009,10 @@
 
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-
-                if (data.action === 'move') {
+                if(data.action === 'chat'){
+                    appendChatMessage(data.sender, data.text, data.replyTo);
+                }
+                else if (data.action === 'move') {
                     const item = document.querySelector(`[data-item-id="${data.itemId}"]`);
                     const targetContainer = document.querySelector(`[data-tier-id="${data.targetTierId}"]`);
                     if (item && targetContainer){
@@ -691,10 +1062,11 @@
                     setTimeout(() => {
                         socket.send(JSON.stringify({ action: 'sync_state', items: items, tiers:tiers}));
                     }, Math.random() * 500);
-
-                    if (data.sender && data.sender !== currentUsername){
+                }
+                else if(data.action === 'join_call' && data.sender !== currentUsername){
+                    if(inCall){
                         const pc = createPeerConnection(data.sender);
-                        pc.createOffer().then(offer =>{
+                        pc.createOffer().then(offer => {
                             pc.setLocalDescription(offer);
                             socket.send(JSON.stringify({
                                 action: 'webrtc_offer',
@@ -705,6 +1077,7 @@
                         });
                     }
                 }
+
                 else if(data.action === 'sync_state'){
                     if (data.tiers){
                         Object.keys(data.tiers).forEach(tierId => {
@@ -802,6 +1175,38 @@
             }
         });
 
+        function compressImage(base64Str, callback){
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                const MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if(width > height){
+                    if (width > MAX_WIDTH){
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                }
+                else{
+                    if(height > MAX_HEIGHT){
+                         width *= MAX_HEIGHT / height;
+                         height = MAX_HEIGHT;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            }
+        }
+
         document.addEventListener('paste', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
 
@@ -811,14 +1216,16 @@
                     const blob = items[i].getAsFile();
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        const base64Url = event.target.result;
-                        const uniqueId = 'img_' + Date.now();
-                        createImageElement(uniqueId, base64Url);
+                        const rawBase64 = event.target.result;
+                        compressImage(rawBase64, (compressedBase64) => {
+                            const uniqueId = 'img_' + Date.now();
+                            createImageElement(uniqueId, compressedBase64);
 
-                        if(socket && socket.readyState === WebSocket.OPEN){
-                            socket.send(JSON.stringify({action: 'add', itemId: uniqueId, url: base64Url}));
-                        }
-                        showToast('success', 'IMAGE PASTED!');
+                            if(socket && socket.readyState === WebSocket.OPEN){
+                                socket.send(JSON.stringify({action: 'add', itemId: uniqueId, url: compressedBase64}));
+                            }
+                            showToast('success', 'IMAGE PASTED!');
+                        });
                     };
                     reader.readAsDataURL(blob);
                     e.preventDefault();

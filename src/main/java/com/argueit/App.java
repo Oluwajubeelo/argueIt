@@ -12,7 +12,7 @@ public class App {
 
     public static void main(String[] args) {
         Javalin app = Javalin.create(config -> {
-            config.staticFiles.add("frontend", Location.EXTERNAL);
+            config.staticFiles.add("/frontend", Location.CLASSPATH);
         }).start(8080);
 
 
