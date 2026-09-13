@@ -727,7 +727,17 @@
         const peerConnections = {};
         const rtcConfig = {
             iceServers: [
-                { urls: 'stun:stun.l.google.com:19302'}
+                { urls: 'stun:stun.l.google.com:19302'},
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject'
+                }
             ]
         };
         let inCall = false;
@@ -958,6 +968,7 @@
                     document.body.appendChild(audioEl);
                 }
                 audioEl.srcObject = event.streams[0];
+                audioEl.play().catch(e => console.error("Audio play failed:", e));
             };
             return pc;
         }
