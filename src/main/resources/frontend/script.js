@@ -135,12 +135,7 @@ document.getElementById('chat-input').addEventListener('keypress', (e) =>{
 
 document.getElementById('toggle-chat-btn').addEventListener('click', () => {
     const chatPanel = document.querySelector('.right-panel');
-    if(chatPanel.style.display === 'none'){
-        chatPanel.style.display = 'flex';
-    }
-    else{
-        chatPanel.style.display = 'none';
-    }
+    chatPanel.classList.toggle('open');
 });
 
 document.getElementById('call-btn').addEventListener('click', async () => {
@@ -639,7 +634,14 @@ document.getElementById('search-image-btn').addEventListener('click', async () =
 
     const resultsBox = document.getElementById('search-results-container');
     resultsBox.style.display = 'flex';
-    resultsBox.innerHTML = '<span style="color: #888; font-size: 14px;">Searching...</span>';
+    resultsBox.innerHTML = `
+        <div style="display: flex; gap: 10px; width: 100%; padding: 5px;">
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+        </div>
+    `;
 
     try{
         const res = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=12&prop=imageinfo&iiprop=url&iiurlwidth=300&format=json&origin=*`);
