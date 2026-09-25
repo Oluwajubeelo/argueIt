@@ -341,7 +341,7 @@ function connectToRoom(roomId){
             if(item) item.remove();
         }
         else if(data.action === 'clear'){
-            document.querySelectorAll('.draggable-item').forEach(img => img.remove());
+            document.querySelectorAll('.draggable-wrapper').forEach(wrapper => wrapper.remove());
         }
         else if(data.action ==='rename_tier'){
             const tierRow = document.querySelector(`.tier-row[data-tier-id="${data.tierId}"]`);
@@ -357,13 +357,16 @@ function connectToRoom(roomId){
         }
         else if (data.action === 'request_sync'){
             const items = [];
-            document.querySelectorAll('.draggable-item').forEach(img => {
-                const tierId = img.closest('[data-tier-id]').getAttribute('data-tier-id');
-                items.push({
-                    id: img.getAttribute('data-item-id'),
-                    url: img.src,
-                    tier: tierId
-                });
+            document.querySelectorAll('.draggable-wrapper').forEach(wrapper => {
+                const tierId = wrapper.closest('[data-tier-id]').getAttribute('data-tier-id');
+                const imgEl = wrapper.querySelector('img');
+                if(imgEl){
+                    items.push({
+                        id: wrapper.getAttribute('data-item-id'),
+                        url: imgEl.src,
+                        tier: tierId
+                    });
+                }
             });
 
             const tiers = {};
@@ -478,6 +481,7 @@ async function handleUnifiedAction(){
 
     const resultsBox = document.getElementById('search-results-container');
     resultsBox.style.display = 'flex';
+    resultsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     resultsBox.innerHTML = `
         <div style="display: flex; gap: 12px; width: 100%; padding: 5px;">
             <div class="pulse-box"></div>
@@ -508,13 +512,8 @@ async function handleUnifiedAction(){
             if(page.imageinfo && page.imageinfo[0]){
                 const url = page.imageinfo[0].thumburl || page.imageinfo[0].url;
                 const uniqueId = 'img_search_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = 'draggable-item search-source';
-                img.setAttribute('data-item-id', uniqueId);
-                img.setAttribute('draggable', 'false');
-                img.onerror = () => {img.style.display = 'none';};
-                resultsBox.appendChild(img);
+                const wrapper = createImageElement(uniqueId, url, true);
+                resultsBox.appendChild(wrapper);
             }
         });
     }
@@ -528,29 +527,38 @@ document.getElementById('unified-input').addEventListener('keypress', async (e) 
     if(e.key === 'Enter') await handleUnifiedAction();
 });
 
-function createImageElement(id, url){
-    const img = document.createElement('img');
+function createImageElement(id, url, isSearchSource = false){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'draggable-wrapper' + (isSearchSource ? ' search-source' : '');
+    wrapper.setAttribute('data-item-id', id);
+
+    const img= document.createElement('img');
     img.src = url;
     img.className = 'draggable-item';
-    img.setAttribute('data-item-id', id);
     img.setAttribute('draggable', 'false');
-    img.onerror = () => {img.src = 'https://via.placeholder.com/80?text=Error';};
-    document.getElementById('image-pool').appendChild(img);
-}
+    img.onerror = () => { wrapper.style.display = 'none';};
 
-document.getElementById('add-image-btn').addEventListener('click', () => {
-    const urlInput = document.getElementById('image-url-input');
-    const url = urlInput.value.trim();
-    if(!url) return showToast('error', 'PLEASE ENTER AN IMAGE URL');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-item-btn';
+    delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    delBtn.title = 'Delete';
+    delBtn.onpointerdown = (e) => e.stopPropagation();
+    delBtn.onclick = (e) => {
+        e.stopPropagation();
+        wrapper.remove();
+        if(!wrapper.classList.contains('search-source') && socket && socket.readyState === WebSocket.OPEN){
+            socket.send(JSON.stringify({action: 'delete', itemId: id}));
+        }
+    };
 
-    const uniqueId = 'img-' + Date.now();
-    createImageElement(uniqueId, url);
-    urlInput.value = '';
+    wrapper.appendChild(img);
+    wrapper.appendChild(delBtn);
 
-    if(socket && socket.readyState === WebSocket.OPEN){
-        socket.send(JSON.stringify({action: 'add', itemId: uniqueId, url:url}));
+    if(!isSearchSource){
+        document.getElementById('image-pool').appendChild(wrapper);
     }
-});
+    return wrapper;
+}
 
 function compressImage(base64Str, callback){
     const img = new Image();
@@ -612,7 +620,7 @@ document.addEventListener('paste', (e) => {
 });
 
 document.getElementById('clear-board-btn').addEventListener('click', () => {
-    document.querySelectorAll('.draggable-item').forEach(img => img.remove());
+    document.querySelectorAll('.draggable-wrapper').forEach(wrapper => wrapper.remove());
 
     if (socket && socket.readyState === WebSocket.OPEN){
         socket.send(JSON.stringify({action: 'clear'}));
@@ -634,8 +642,9 @@ document.querySelectorAll('.tier-label').forEach(label => {
 });
 
 document.addEventListener('pointerdown', (e) => {
-    if(e.target.classList.contains('draggable-item')){
-        draggedItem = e.target;
+    const wrapper = e.target.closest('.draggable-wrapper');
+    if(wrapper && !e.target.closest('.delete-item-btn')){
+        draggedItem = wrapper;
         originalParent = draggedItem.parentElement;
 
         const rect = draggedItem.getBoundingClientRect();
@@ -655,31 +664,18 @@ document.addEventListener('pointermove', (e) => {
     if(draggedItem){
         draggedItem.style.left = `${e.pageX - offsetX}px`;
         draggedItem.style.top = `${e.pageY - offsetY}px`;
-
-        const trashCan = document.getElementById('trash-can');
-        if(trashCan){
-            const rect = trashCan.getBoundingClientRect();
-            if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom){
-                trashCan.classList.add('drag-over');
-            }
-            else{
-                trashCan.classList.remove('drag-over');
-            }
-        }
     }
 
     if(socket && socket.readyState === WebSocket.OPEN && document.getElementById('app-container').style.display !== 'none'){
         const now = Date.now();
-        if (now - lastCursorSend > 50){
-            socket.send(JSON.stringify({ action: 'cursor', username: currentUsername, x: e.pageX, y: e.pageY}));
+        if(now - lastCursorSend > 50){
+            socket.send(JSON.stringify({action: 'cursor', username: currentUsername, x: e.pageX, y: e.pageY}));
             lastCursorSend = now;
         }
     }
 });
 
 document.addEventListener('pointerup', (e) => {
-    const trashCan = document.getElementById('trash-can');
-    if(trashCan) trashCan.classList.remove('drag-over');
     if(draggedItem){
         draggedItem.style.display = 'none';
         const elementBelow = document.elementFromPoint(e.clientX, e.clientY);
@@ -694,27 +690,19 @@ document.addEventListener('pointerup', (e) => {
             const targetTierId = dropzone.closest('[data-tier-id]').getAttribute('data-tier-id');
             const itemId = draggedItem.getAttribute('data-item-id');
 
-            if (targetTierId === 'trash'){
-                draggedItem.remove();
+            if(draggedItem.classList.contains('search-source')){
+                draggedItem.classList.remove('search-source');
+                const imgUrl = draggedItem.querySelector('img').src;
                 if(socket && socket.readyState === WebSocket.OPEN){
-                    socket.send(JSON.stringify({ action: 'delete', itemId: itemId}));
+                    socket.send(JSON.stringify({action: 'add', itemId: itemId, url: imgUrl}));
                 }
             }
-            else{
-                if(draggedItem.classList.contains('search-source')){
-                    draggedItem.classList.remove('search-source');
-                    if(socket && socket.readyState === WebSocket.OPEN){
-                        socket.send(JSON.stringify({action: 'add', itemId: itemId, url: draggedItem.src}));
-                    }
-                }
-                dropzone.appendChild(draggedItem);
-                broadcastMove(itemId, targetTierId);
-            }
+            dropzone.appendChild(draggedItem);
+            broadcastMove(itemId, targetTierId);
         }
         else{
             originalParent.appendChild(draggedItem);
         }
-
         draggedItem.releasePointerCapture(e.pointerId);
         draggedItem = null;
         originalParent = null;
@@ -770,6 +758,3 @@ document.getElementById('search-image-btn').addEventListener('click', async () =
     }
 });
 
-document.getElementById('image-search-input').addEventListener('keypress', (e) => {
-    if(e.key === 'Enter') document.getElementById('search-image-btn').click();
-})

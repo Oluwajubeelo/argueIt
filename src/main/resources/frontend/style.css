@@ -412,28 +412,6 @@ header h1{
     color: white;
 }
 
-#trash-can {
-    background-color: #fef2f2;
-    border: 2px dashed #fca5a5;
-    color: var(--danger);
-    padding: 20px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 15px;
-    min-height: 70px;
-    transition: all 0.2s ease;
-    margin-bottom: 10px;
-}
-
-#trash-can.drag-over {
-    background-color: #fee2e2;
-    border-color: var(--danger);
-    transform: scale(1.02);
-}
-
 #image-pool {
     min-height: 250px;
     background-color: var(--bg-panel);
@@ -447,30 +425,97 @@ header h1{
     margin-bottom: 40px;
 }
 
-.draggable-item {
+.draggable-wrapper{
+    position: relative;
     width: 90px;
     height: 90px;
-    object-fit: cover;
     border-radius: 12px;
     cursor: grab;
     box-shadow: var(--shadow-sm);
-    user-select: none;
-    border: 2px solid transparent;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
     background-color: var(--bg-main);
+    user-select: none;
 }
 
-.draggable-item:hover {
+.draggable-wrapper:hover{
     transform: translateY(-6px) scale(1.08);
     box-shadow: var(--shadow-lg);
-    border-color: var(--text-primary);
     z-index: 10;
 }
 
-.draggable-item:active {
+.draggable-wrapper:active{
     cursor: grabbing;
     transform: scale(0.95);
 }
+
+.draggable-item{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    pointer-events: none;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.draggable-wrapper:hover .draggable-item{
+    border-color: var(--text-primary);
+}
+
+.delete-item-btn{
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    background: #e5e7eb;
+    color: #4b5563;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+    z-index: 11;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.draggable-wrapper:hover .delete-item-btn{
+    opacity: 1;
+}
+
+.delete-item-btn:hover{
+    background: #d1d5db;
+    color: #111827;
+    transform: scale(1.1);
+}
+
+/*.draggable-item {*/
+/*    width: 90px;*/
+/*    height: 90px;*/
+/*    object-fit: cover;*/
+/*    border-radius: 12px;*/
+/*    cursor: grab;*/
+/*    box-shadow: var(--shadow-sm);*/
+/*    user-select: none;*/
+/*    border: 2px solid transparent;*/
+/*    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;*/
+/*    background-color: var(--bg-main);*/
+/*}*/
+
+/*.draggable-item:hover {*/
+/*    transform: translateY(-6px) scale(1.08);*/
+/*    box-shadow: var(--shadow-lg);*/
+/*    border-color: var(--text-primary);*/
+/*    z-index: 10;*/
+/*}*/
+
+/*.draggable-item:active {*/
+/*    cursor: grabbing;*/
+/*    transform: scale(0.95);*/
+/*}*/
 .right-panel {
     width: 380px;
     background-color: var(--bg-panel);
@@ -498,6 +543,31 @@ header h1{
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.chat-header-left{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.close-chat-btn{
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-chat-btn:hover{
+    background: var(--border-heavy);
+    color: var(--text-primary);
 }
 
 .chat-header h2 {
