@@ -24,6 +24,7 @@ const rtcConfig = {
     ]
 };
 let inCall = false;
+let isMuted = false;
 let replyingTo = null;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -63,8 +64,7 @@ function handleError(errorCode){
 function startReply(sender, text){
     replyingTo = {sender, text};
     document.getElementById('reply-target-name').innerText = sender;
-    const truncatedText = text.length > 30 ? text.substring(0, 30) + '...' : text;
-    document.getElementById('reply-target-text').innerText = truncatedText;
+    document.getElementById('reply-target-text').innerText = text.length > 30 ? text.substring(0, 30) + '...' : text;
     document.getElementById('reply-context-area').style.display = 'flex';
     document.getElementById('chat-input').focus();
 }
@@ -133,21 +133,26 @@ document.getElementById('chat-input').addEventListener('keypress', (e) =>{
     if(e.key === 'Enter') sendChatMessage();
 });
 
-document.getElementById('toggle-chat-btn').addEventListener('click', () => {
+const toggleChat = () => {
     const chatPanel = document.querySelector('.right-panel');
     chatPanel.classList.toggle('open');
-});
+}
+
+document.getElementById('toggle-chat-btn').addEventListener('click', toggleChat);
+document.getElementById('close-chat-btn').addEventListener('click', toggleChat);
 
 document.getElementById('call-btn').addEventListener('click', async () => {
     const btn = document.getElementById('call-btn');
+    const muteBtn = document.getElementById('mute-btn');
 
-    if (inCall){
+    if(inCall){
         if(localStream){
             localStream.getTracks().forEach(t => t.stop());
         }
         localStream = null;
         inCall = false;
         btn.classList.remove('active');
+        muteBtn.style.display = 'none';
 
         Object.values(peerConnections).forEach(pc => pc.close());
         for (let key in peerConnections) delete peerConnections[key];
@@ -168,15 +173,19 @@ document.getElementById('call-btn').addEventListener('click', async () => {
         });
         inCall = true;
         btn.classList.add('active');
-        showToast('success', 'MICROPHONE CONNECTED');
+        muteBtn.style.display = 'flex';
 
+        isMuted = false;
+        document.getElementById('mic-icon-unmuted').style.display = 'block';
+        document.getElementById('mic-icon-muted').style.display = 'none';
+        showToast('success', 'MICROPHONE CONNECTED');
         if(socket && socket.readyState === WebSocket.OPEN){
-            socket.send(JSON.stringify({action:'join_call', sender: currentUsername}));
+            socket.send(JSON.stringify({action: 'join_call', sender: currentUsername}));
         }
     }
     catch(err){
         console.error("Mic error:", err);
-        if(err.name === 'NotAllowedError' || err.name === 'SecurityError'){
+        if(err.name === 'NotAllowedError' || err.name ==='SecurityError'){
             showToast('error', 'MIC BLOCKED: REQUIRES HTTPS OR LOCALHOST');
         }
         else{
@@ -185,24 +194,33 @@ document.getElementById('call-btn').addEventListener('click', async () => {
     }
 });
 
+document.getElementById('mute-btn').addEventListener('click', () => {
+    if(localStream){
+        isMuted = !isMuted;
+        localStream.getAudioTracks()[0].enabled = !isMuted;
+
+        if(isMuted){
+            document.getElementById('mic-icon-unmuted').style.display = 'none';
+            document.getElementById('mic-icon-muted').style.display = 'block';
+            showToast('success', 'MICROPHONE MUTED');
+        }
+        else{
+            document.getElementById('mic-icon-unmuted').style.display = 'block';
+            document.getElementById('mic-icon-muted').style.display = 'none';
+            showToast('success', 'MICROPHONE UNMUTED');
+        }
+    }
+});
+
 document.getElementById('copy-room-btn').addEventListener('click', () => {
-    const code= document.getElementById('display-room-code').innerText;
+    const code = document.getElementById('display-room-code').innerText;
     const tempInput = document.createElement('input');
-    tempInput.value = code;
+    tempInput.value = window.location.origin + "?room=" + code;
     document.body.appendChild(tempInput);
     tempInput.select();
     document.execCommand('copy');
     document.body.removeChild(tempInput);
-    showToast('success', 'ROOM CODE COPIED!');
-});
-
-document.getElementById('btn-create').addEventListener('click', () => {
-    const username = document.getElementById('create-username').value.trim();
-    if (!username) return handleError('NO_USERNAME');
-
-    currentUsername = username;
-    const newRoomId = Math.random().toString(36).substring(2,8);
-    connectToRoom(newRoomId);
+    showToast('success', 'ROOM LINK COPIED!');
 });
 
 document.getElementById('btn-join').addEventListener('click', async () => {
@@ -215,6 +233,14 @@ document.getElementById('btn-join').addEventListener('click', async () => {
 
     currentUsername = username;
     connectToRoom(roomcode);
+});
+
+document.getElementById('btn-create').addEventListener('click', () => {
+    const username = document.getElementById('create-username').value.trim();
+    if(!username) return handleError('NO_USERNAME');
+    currentUsername = username;
+    const newRoomId = Math.random().toString(36).substring(2,8);
+    connectToRoom(newRoomId);
 });
 
 function createPeerConnection(targetUsername){
@@ -434,6 +460,73 @@ function broadcastMove(itemId, targetTierId){
         }));
     }
 }
+
+async function handleUnifiedAction(){
+    const query = document.getElementById('unified-input').value.trim();
+    if(!query) return showToast('error', 'PLEASE ENTER A SEARCH TERM OR URL');
+
+    const isUrl = /^(https?:\/\/|data:image\/)/i.test(query);
+    if(isUrl){
+        const uniqueId= 'img-' + Date.now();
+        createImageElement(uniqueId, query);
+        document.getElementById('unified-input').value = '';
+        if(socket && socket.readyState === WebSocket.OPEN){
+            socket.send(JSON.stringify({action: 'add', itemId: uniqueId, url: query}));
+        }
+        return;
+    }
+
+    const resultsBox = document.getElementById('search-results-container');
+    resultsBox.style.display = 'flex';
+    resultsBox.innerHTML = `
+        <div style="display: flex; gap: 12px; width: 100%; padding: 5px;">
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+            <div class="pulse-box"></div>
+        </div>
+    `;
+
+    try{
+        const res = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(query)}&gsrlimit=12&prop=imageinfo&iiprop=url&iiurlwidth=300&format=json&origin=*`);
+        const data = await res.json();
+        resultsBox.innerHTML = '';
+
+        if(!data.query || !data.query.pages){
+            resultsBox.innerHTML = '<span style="color: var(--danger); font-size: 14px; font-weight: bold;">No images found.</span>';
+            return;
+        }
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = '✕ Close Results';
+        closeBtn.style.cssText = 'flex-basis: 100%; background: none; border: none; color: var(--text-secondary); text-align: right; cursor:pointer; font-weight: bold; font-size: 12px; margin-bottom: 5px; transition: color 0.2s;';
+        closeBtn.onmouseover = () => closeBtn.style.color = 'var(--danger)';
+        closeBtn.onmouseout = () => closeBtn.style.color = 'var(--text-secondary)';
+        closeBtn.onclick = () =>resultsBox.style.display = 'none';
+        resultsBox.appendChild(closeBtn);
+
+        Object.values(data.query.pages).forEach(page => {
+            if(page.imageinfo && page.imageinfo[0]){
+                const url = page.imageinfo[0].thumburl || page.imageinfo[0].url;
+                const uniqueId = 'img_search_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'draggable-item search-source';
+                img.setAttribute('data-item-id', uniqueId);
+                img.setAttribute('draggable', 'false');
+                img.onerror = () => {img.style.display = 'none';};
+                resultsBox.appendChild(img);
+            }
+        });
+    }
+    catch(err){
+        resultsBox.innerHTML = '<span style="color: var(--danger); font-size: 14px; font-weight: bold;">Search failed. Please try again</span>';
+    }
+}
+
+document.getElementById('unified-action-btn').addEventListener('click', handleUnifiedAction);
+document.getElementById('unified-input').addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') await handleUnifiedAction();
+});
 
 function createImageElement(id, url){
     const img = document.createElement('img');

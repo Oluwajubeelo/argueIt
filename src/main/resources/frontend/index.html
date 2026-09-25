@@ -8,16 +8,17 @@
 </head>
 <body>
     <div id="landing-page">
-        <div class="brand-title">argueIt</div>
+        <div class="brand-title">argueIt.</div>
 
         <div class="auth-container">
             <input type="text" id="create-username" class="auth-input" placeholder="Username">
             <input type="password" id="create-password" class="auth-input" placeholder="Password (Optional)">
             <button id="btn-create" class="btn-create">Create New Room</button>
 
-            <div class="divider">- OR -</div>
+            <div class="divider">or join existing</div>
+
             <input type="text" id="join-username" class="auth-input" placeholder="Username">
-            <input type="text" id="join-roomcode" class="auth-input" placeholder="Enter code">
+            <input type="text" id="join-roomcode" class="auth-input" placeholder="Enter room code">
             <input type="password" id="join-password" class="auth-input" placeholder="Password (If Required)">
             <button id="btn-join" class="btn-join">Join Room</button>
         </div>
@@ -26,13 +27,41 @@
     <div id="app-container" style="display: none;">
         <div class="left-panel">
             <header>
-                <div class="room-info">
-                    Room :<span id="display-room-code">---</span>
-                    <button class="copy-btn" id="copy-room-btn">Copy</button>
-                    <button class="toggle-chat-btn" id="toggle-chat-btn">Toggle Chat</button>
-                    <button class="toggle-chat-btn" id="theme-toggle-btn" style="background: #4b5563;">☀️ Light Mode</button>
+                <h1>argueIt.</h1>
+
+                <div class="header-actions">
+                    <div class="unified-input-container">
+                        <input type="text" id="unified-input" placeholder="Search images or paste URL...">
+                        <button id="unified-action-btn" title="Search or Add URL">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <button class="icon-btn" id="clear-board-btn" title="Clear Board" style="color: var(--danger); border-color: var(--danger);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                            <line x1="18" y1="9" x2="12" y2="15"></line>
+                            <line x1="12" y1="9" x2="18" y2="15"></line>
+                        </svg>
+                    </button>
+
+                    <button class="room-pill" id="copy-room-btn" title="Copy Room Link">
+                        <span>Room: <strong id="display-room-code" style="text-transform: uppercase;">---</strong></span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="copy-icon">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+
+                    <button class="icon-btn" id="toggle-chat-btn" title="Open Chat">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
                 </div>
-                <h1>argueIt</h1>
             </header>
 
             <main id="tier-board">
@@ -62,39 +91,60 @@
                 </div>
             </main>
 
-            <div class="controls">
-                <input type="text" id="image-url-input" placeholder="Paste an image URL here ...">
-                <button id="add-image-btn">Add Image</button>
-                <button id="clear-board-btn" style="background-color: #ff4444; margin-left: auto;">Clear All</button>
-                <div style="flex-basis: 100%; height: 0; margin: 0;"></div>
-                <input type="text" id="image-search-input" placeholder="Search images(e.g characters, animals)..." style="flex: 2;">
-                <button id="search-image-btn" style="background-color: #3b82f6;">Search API</button>
-            </div>
-
-            <div id="search-results-container" style="display: none; flex-wrap:wrap; gap: 10px; background-color: #1e1e1e; padding: 15px; border-radius: 8px; border: 2px dashed #555;"></div>
-
-            <div id="trash-can" class="tier-dropzone" data-tier-id="trash">
-                🗑️ Drag Image Here to Delete
-            </div>
+            <div id="search-results-container"></div>
 
             <section id="image-pool" class="tier-dropzone" data-tier-id="pool">
             </section>
+
+            <div id="trash-can" class="tier-dropzone" data-tier-id="trash" title="Drag here to delete">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
         </div>
 
         <div class="right-panel">
             <div class="chat-header">
-                <h2>Room Chat</h2>
-                <button class="call-btn" id="call-btn" title="Join Voice Call">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-                    </svg>
-                </button>
+                <div class="chat-header-left">
+                    <button class="close-chat-btn" id="close-chat-btn" title="Close Chat">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <h2>Room Chat</h2>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="call-btn" id="mute-btn" title="Mute Microphone" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="mic-icon-unmuted">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="mic-icon-muted" style="display: none; color: var(--danger);">
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                            <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path>
+                            <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                    <button class="call-btn" id="call-btn" title="Join Voice Call">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="chat-messages" id="chat-messages"></div>
 
             <div class="reply-context-area" id="reply-context-area">
-                <div>Replying to <span id="reply-target-name" style="font-weight: bold; color: #10b981;"></span>: <span id="reply-target-text" style="opacity: 0.8; margin-left: 5px;"></span></div>
+                <div>Replying to <span id="reply-target-name" style="font-weight: 700; color: var(--text-primary);"></span>: <span id="reply-target-text" style="opacity: 0.8; margin-left: 5px;"></span></div>
                 <button class="close-btn" id="cancel-reply-btn">✕</button>
             </div>
 
