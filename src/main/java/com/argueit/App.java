@@ -30,6 +30,13 @@ public class App{
         app.ws("/tierlist/{roomId}", ws -> {
             ws.onConnect(ctx -> {
                 String roomId = ctx.pathParam("roomId");
+                String password = ctx.queryParam("password");
+                if (password == null) password = "";
+
+                if(!verifyOrSetRoomPassword(roomId, password)){
+                    ctx.session.close(1008, "INVALID_PASSWORD");
+                    return;
+                }
                 rooms.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(ctx);
                 updateRoomActivity(roomId);
                 System.out.println("User joined room " + roomId + "! Total in room: " + rooms.get(roomId).size());
@@ -94,10 +101,11 @@ public class App{
     }
 
     private static void initDatabase(){
-        try (Connection conn = DriverManager.getConnection(DB_URL);
+        try(Connection conn = DriverManager.getConnection(DB_URL);
             Statement stmt = conn.createStatement()){
             stmt.execute("PRAGMA foreign_keys = ON;");
-            stmt.execute("CREATE TABLE IF NOT EXISTS rooms (room_id TEXT PRIMARY KEY, last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS rooms (room_id TEXT PRIMARY  KEY, password TEXT, last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+            try{stmt.execute("ALTER TABLE rooms ADD COLUMN password TEXT");} catch (SQLException ignored){}
             stmt.execute("CREATE TABLE IF NOT EXISTS items (item_id TEXT, room_id TEXT, url TEXT, tier_id TEXT, PRIMARY KEY(item_id, room_id), FOREIGN KEY(room_id) REFERENCES rooms(room_id) ON DELETE CASCADE)");
             stmt.execute("CREATE TABLE IF NOT EXISTS tiers (room_id TEXT, tier_id TEXT, name TEXT, PRIMARY KEY(room_id, tier_id), FOREIGN KEY(room_id) REFERENCES rooms(room_id) ON DELETE CASCADE)");
         }
@@ -124,6 +132,34 @@ public class App{
             pstmt.setString(1, roomId);
             pstmt.executeUpdate();
         }catch (SQLException e) {e.printStackTrace();}
+    }
+
+    private static boolean verifyOrSetRoomPassword(String roomId, String password){
+        String checkSql = "SELECT password FROM rooms WHERE room_id = ?";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql)){
+            checkStmt.setString(1, roomId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if(rs.next()){
+                String dbPass = rs.getString("password");
+                if(dbPass == null) dbPass = "";
+                return dbPass.equals(password);
+            }
+            else{
+                String insertSql = "INSERT INTO rooms (room_id, password, last_active) VALUES (?, ?, datetime('now'))";
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)){
+                    insertStmt.setString(1, roomId);
+                    insertStmt.setString(2, password);
+                    insertStmt.executeUpdate();
+                }
+                return true;
+            }
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private static void saveItem(String roomId, String itemId, String url, String tierId){

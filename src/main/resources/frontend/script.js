@@ -226,21 +226,22 @@ document.getElementById('copy-room-btn').addEventListener('click', () => {
 document.getElementById('btn-join').addEventListener('click', async () => {
     const username = document.getElementById('join-username').value.trim();
     const roomcode = document.getElementById('join-roomcode').value.trim().toLowerCase();
-
+    const password = document.getElementById('join-password').value.trim();
     if(!username) return handleError('NO_USERNAME');
     if(!roomcode) return handleError('NO_ROOMCODE');
     if(roomcode.length !== 6) return handleError('INVALID_ROOMCODE');
 
     currentUsername = username;
-    connectToRoom(roomcode);
+    connectToRoom(roomcode, password);
 });
 
 document.getElementById('btn-create').addEventListener('click', () => {
     const username = document.getElementById('create-username').value.trim();
+    const password = document.getElementById('create-password').value.trim();
     if(!username) return handleError('NO_USERNAME');
     currentUsername = username;
     const newRoomId = Math.random().toString(36).substring(2,8);
-    connectToRoom(newRoomId);
+    connectToRoom(newRoomId, password);
 });
 
 function createPeerConnection(targetUsername){
@@ -300,7 +301,7 @@ function updateRemoteCursor(username, x, y){
     }, 3000);
 }
 
-function connectToRoom(roomId){
+function connectToRoom(roomId, password = ''){
     window.history.pushState({}, '', '?room=' + roomId);
     document.title = "ArgueIt - Room: " + roomId;
 
@@ -310,7 +311,9 @@ function connectToRoom(roomId){
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    socket = new WebSocket(`${protocol}//${host}/tierlist/${roomId}`);
+    let wsUrl = `${protocol}//${host}/tierlist/${roomId}`;
+    if(password) wsUrl += `?password=${encodeURIComponent(password)}`;
+    socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
         console.log(`Connected to Room ${roomId} as ${currentUsername}!`);
@@ -441,9 +444,17 @@ function connectToRoom(roomId){
         }
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
+        if(event.code === 1008){
+            showToast('error', 'INCORRECT PASSWORD');
+            document.getElementById('landing-page').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+            window.history.pushState({}, '', '/');
+            document.title = "argueIt";
+            return;
+        }
         console.log("Connection asleep. Reconnecting...");
-        setTimeout(() => connectToRoom(roomId), 2000);
+        setTimeout(() => connectToRoom(roomId, password), 2000);
     }
 
     if(window.pingInterval) clearInterval(window.pingInterval);
