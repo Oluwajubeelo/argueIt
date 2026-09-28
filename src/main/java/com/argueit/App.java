@@ -136,25 +136,24 @@ public class App{
 
     private static boolean verifyOrSetRoomPassword(String roomId, String password){
         String checkSql = "SELECT password FROM rooms WHERE room_id = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-            PreparedStatement checkStmt = conn.prepareStatement(checkSql)){
-            checkStmt.setString(1, roomId);
-            ResultSet rs = checkStmt.executeQuery();
-
-            if(rs.next()){
-                String dbPass = rs.getString("password");
-                if(dbPass == null) dbPass = "";
-                return dbPass.equals(password);
-            }
-            else{
-                String insertSql = "INSERT INTO rooms (room_id, password, last_active) VALUES (?, ?, datetime('now'))";
-                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)){
-                    insertStmt.setString(1, roomId);
-                    insertStmt.setString(2, password);
-                    insertStmt.executeUpdate();
+        try (Connection conn = DriverManager.getConnection(DB_URL)){
+            try(PreparedStatement checkStmt = conn.prepareStatement(checkSql)){
+                checkStmt.setString(1, roomId);
+                try(ResultSet rs = checkStmt.executeQuery()){
+                    if(rs.next()){
+                        String dbPass = rs.getString("password");
+                        if(dbPass == null) dbPass = "";
+                        return dbPass.equals(password);
+                    }
                 }
-                return true;
             }
+            String insertSql = "INSERT INTO rooms (room_id, password, last_active) VALUES (?, ?, datetime('now'))";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)){
+                insertStmt.setString(1, roomId);
+                insertStmt.setString(2, password);
+                insertStmt.executeUpdate();
+            }
+            return true;
         }
         catch (SQLException e){
             e.printStackTrace();
