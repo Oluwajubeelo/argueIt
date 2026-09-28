@@ -30,13 +30,6 @@ public class App{
         app.ws("/tierlist/{roomId}", ws -> {
             ws.onConnect(ctx -> {
                 String roomId = ctx.pathParam("roomId");
-                String password = ctx.queryParam("password");
-                if (password == null) password = "";
-
-                if(!verifyOrSetRoomPassword(roomId, password)){
-                    ctx.session.close(1008, "INVALID_PASSWORD");
-                    return;
-                }
                 rooms.computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet()).add(ctx);
                 updateRoomActivity(roomId);
                 System.out.println("User joined room " + roomId + "! Total in room: " + rooms.get(roomId).size());
@@ -135,27 +128,38 @@ public class App{
     }
 
     private static boolean verifyOrSetRoomPassword(String roomId, String password){
+        boolean roomExists = false;
+        String dbPass = "";
         String checkSql = "SELECT password FROM rooms WHERE room_id = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL)){
-            try(PreparedStatement checkStmt = conn.prepareStatement(checkSql)){
-                checkStmt.setString(1, roomId);
-                try(ResultSet rs = checkStmt.executeQuery()){
-                    if(rs.next()){
-                        String dbPass = rs.getString("password");
-                        if(dbPass == null) dbPass = "";
-                        return dbPass.equals(password);
-                    }
+        try(Connection conn = DriverManager.getConnection(DB_URL);
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql)){
+            checkStmt.setString(1, roomId);
+            try (ResultSet rs = checkStmt.executeQuery()){
+                if (rs.next()){
+                    roomExists = true;
+                    dbPass = rs.getString("password");
+                    if(dbPass == null) dbPass ="";
                 }
             }
-            String insertSql = "INSERT INTO rooms (room_id, password, last_active) VALUES (?, ?, datetime('now'))";
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)){
-                insertStmt.setString(1, roomId);
-                insertStmt.setString(2, password);
-                insertStmt.executeUpdate();
-            }
+        }
+        catch(SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+
+        if(roomExists){
+            return dbPass.equals(password);
+        }
+
+        String insertSql = "INSERT INTO rooms (room_id, password, last_active) VALUES (?,?, datetime('now'))";
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+            PreparedStatement insertStmt = conn.prepareStatement(insertSql)){
+            insertStmt.setString(1, roomId);
+            insertStmt.setString(2, password);
+            insertStmt.executeUpdate();
             return true;
         }
-        catch (SQLException e){
+        catch(SQLException e){
             e.printStackTrace();
             return false;
         }

@@ -226,22 +226,20 @@ document.getElementById('copy-room-btn').addEventListener('click', () => {
 document.getElementById('btn-join').addEventListener('click', async () => {
     const username = document.getElementById('join-username').value.trim();
     const roomcode = document.getElementById('join-roomcode').value.trim().toLowerCase();
-    const password = document.getElementById('join-password').value.trim();
     if(!username) return handleError('NO_USERNAME');
     if(!roomcode) return handleError('NO_ROOMCODE');
     if(roomcode.length !== 6) return handleError('INVALID_ROOMCODE');
 
     currentUsername = username;
-    connectToRoom(roomcode, password);
+    connectToRoom(roomcode);
 });
 
 document.getElementById('btn-create').addEventListener('click', () => {
     const username = document.getElementById('create-username').value.trim();
-    const password = document.getElementById('create-password').value.trim();
     if(!username) return handleError('NO_USERNAME');
     currentUsername = username;
     const newRoomId = Math.random().toString(36).substring(2,8);
-    connectToRoom(newRoomId, password);
+    connectToRoom(newRoomId);
 });
 
 function createPeerConnection(targetUsername){
@@ -311,9 +309,7 @@ function connectToRoom(roomId, password = ''){
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    let wsUrl = `${protocol}//${host}/tierlist/${roomId}`;
-    if(password) wsUrl += `?password=${encodeURIComponent(password)}`;
-    socket = new WebSocket(wsUrl);
+    socket = new WebSocket(`${protocol}//${host}/tierlist/${roomId}`);
 
     socket.onopen = () => {
         console.log(`Connected to Room ${roomId} as ${currentUsername}!`);
